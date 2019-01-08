@@ -72,13 +72,14 @@ try:
                     CurrentDevAddr = saddr
                     CurrentDevLoc = SENSOR_LOCATION[entry-1]
                     for (adtype, desc, value) in dev.getScanData():
+#                        print (adtype)
                         print (" %s = %s" % (desc, value))
                         if (desc == "Manufacturer"):
                             ManuData = value
                     if (ManuData == ""):
                         print ("No data received, end decoding")
                         continue
-                   # print (ManuData)
+                    #print (ManuData)
                     
                     for i, j in zip (ManuData[::2], ManuData[1::2]):
                          ManuDataHex.append(int(i+j, 16))
@@ -89,6 +90,12 @@ try:
                     else:
                         print ("Header byte 0x0085 not found, decoding stop")
                         continue
+                    
+                    id=0
+                    while (id < len(ManuDataHex)):
+                         print ("ID: "  + str(id))
+                         print ("Data: " + hex(ManuDataHex[id]))
+                         id += 1
 
                     #Skip Major/Minor Index 5 is 0x3c, indicate 
                     #battery level and config #
@@ -99,8 +106,8 @@ try:
 
                     #print "TotalLen: " + str(len(ManuDataHex))
                     while (idx < len(ManuDataHex)):
-                        print ("Idx: " + str(idx))
-                        print ("Data: " + hex(ManuDataHex[idx]))
+                       # print ("Idx: " + str(idx))
+                       # print ("Data: " + hex(ManuDataHex[idx]))
                         
                         if (ManuDataHex[idx] == 0x41):
                             #Accerometer data
@@ -108,12 +115,22 @@ try:
                             AcceleroType = ManuDataHex[idx]
                             AcceleroData = ManuDataHex[idx+1]
                             idx += 2
+                        elif (ManuDataHex[idx] == 0x42):
+                            #Light data
+                            idx += 1
+                            LightData = ManuDataHex[idx+1]
+                            LightData += ManuDataHex[idx+2] * 0x100
+                            LightData = LightData * (4000/4095)
+                            idx += 3
                         elif (ManuDataHex[idx] == 0x43):
                             #Temperature data
                             idx += 1
                             TempData = ManuDataHex[idx]
+                            print (TempData)
                             TempData += ManuDataHex[idx+1] * 0x100
+                            print (TempData)
                             TempData = TempData * 0.0625
+                            print (TempData)
                             TempData = (TempData * 1.8) + 32
                             idx += 2
                         else:
@@ -123,6 +140,7 @@ try:
                     print ("Battery Level: " + str(BatteryLevel) + "%")
                     print ("Config Counter: " + str(ConfigCounter))
                     print ("Accelero Data: " + hex(AcceleroType) + " " + hex(AcceleroData))
+                    print ("Light Data: " + str(LightData))
                     print ("Temp Data: " + str(TempData))
 #                    doQueryInsert(myConnection, CurrentDevAddr, CurrentDevLoc, TempData, AcceleroData)
                     ReadLoop = False
