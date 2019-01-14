@@ -16,6 +16,7 @@ from bluepy.btle import Scanner, DefaultDelegate
 import time
 #import pymysql
 import struct
+from mqtttest import writetoMQTT
 
 hostname = 'localhost'
 username = 'datasrc'
@@ -25,6 +26,7 @@ database = 'bleSensor'
 #Enter the MAC address of the sensor from the lescan
 SENSOR_ADDRESS = ["ec:fe:7e:10:92:09"]
 SENSOR_LOCATION = ["Garage"]
+data = {'battery':-99,'RSSI':-99,'temperature':-99,'light':-99,'position':-99}
 
 class DecodeErrorException(Exception):
      def __init__(self, value):
@@ -71,6 +73,7 @@ try:
                     print ("Device %s (%s), RSSI=%d dB" % (dev.addr, dev.addrType, dev.rssi))
                     CurrentDevAddr = saddr
                     CurrentDevLoc = SENSOR_LOCATION[entry-1]
+                    data['RSSI'] = dev.rssi
                     for (adtype, desc, value) in dev.getScanData():
 #                        print (adtype)
                         print (" %s = %s" % (desc, value))
@@ -101,6 +104,7 @@ try:
                     #battery level and config #
                     if (ManuDataHex[4] == 0x3c):
                         BatteryLevel = ManuDataHex[5]
+                        data['battery'] = BatteryLevel
                         ConfigCounter = ManuDataHex[6]
                     idx = 7
 
@@ -114,6 +118,11 @@ try:
                             idx += 1
                             AcceleroType = ManuDataHex[idx]
                             AcceleroData = ManuDataHex[idx+1]
+#                            print (hex(AcceleroData))
+                            if (AcceleroData == 0x20):
+                                data['position'] = 'Open'
+                            else:
+                                data['position'] = 'Closed'
                             idx += 2
                         elif (ManuDataHex[idx] == 0x42):
                             #Light data
@@ -121,6 +130,7 @@ try:
                             LightData = ManuDataHex[idx+1]
                             LightData += ManuDataHex[idx+2] * 0x100
                             LightData = LightData * (4000/4095)
+                            data['light'] = round(LightData)
                             idx += 3
                         elif (ManuDataHex[idx] == 0x43):
                             #Temperature data
@@ -128,6 +138,7 @@ try:
                             TempData = ManuDataHex[idx]
                             TempData += ManuDataHex[idx+1] * 0x100
                             TempData = TempData * 0.0625
+                            data['temperature'] = round(TempData,1)
                             TempData = (TempData * 1.8) + 32
                             idx += 2
                         else:
@@ -139,6 +150,7 @@ try:
                     print ("Accelero Data: " + hex(AcceleroType) + " " + hex(AcceleroData))
                     print ("Light Data: " + str(round(LightData)))
                     print ("Temp Data: " + str(round(TempData,1)))
+                    writetoMQTT(data)
 #                    doQueryInsert(myConnection, CurrentDevAddr, CurrentDevLoc, TempData, AcceleroData)
                     ReadLoop = False
     
