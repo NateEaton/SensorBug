@@ -57,6 +57,7 @@ scanner = Scanner().withDelegate(ScanDelegate())
 #        myConnection = pymysql.connect (host=hostname, user=username, passwd=password, db=database) 
 ManuDataHex = [] 
 ReadLoop = True 
+RetryCount = 0
 
 try:
         while (ReadLoop):
@@ -153,7 +154,10 @@ try:
                     writetoMQTT(data)
 #                    doQueryInsert(myConnection, CurrentDevAddr, CurrentDevLoc, TempData, AcceleroData)
                     ReadLoop = False
-    
+            else:
+               print ("btLE not found")
+               RetryCount +=1
+               if RetryCount > 3: ReadLoop = False
 except DecodeErrorException:
     pass
 

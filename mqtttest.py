@@ -32,7 +32,7 @@ mqttLogger = logging.getLogger('__main__')
 
 def connected(client):
 	mqttLogger.info('Connected to Adafruit IO!')
-	
+
 
 mqtt = MQTTClient('tlbradshaw','4551326023d44215bc73c6367ad1b8f0')
 #aio = Client('tlbradshaw','4551326023d44215bc73c6367ad1b8f0')
@@ -68,3 +68,5 @@ def writetoMQTT(data):
 #			aio.send('home-garage-position', data['position'])
 	except:
 		pass
+
+		#python3 aws-iot-device-sdk-python/samples/basicPubSub/basicPubSub.py -e a994nyueonve9-ats.iot.us-east-1.amazonaws.com -r root-CA.crt -c Garage_Pi.cert.pem -k Garage_Pi.private.key
