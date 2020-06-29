@@ -16,7 +16,7 @@ from bluepy.btle import Scanner, DefaultDelegate
 import time
 #import pymysql
 import struct
-from mqtttest import writetoMQTT
+#from mqtttest import writetoMQTT
 
 hostname = 'localhost'
 username = 'datasrc'
@@ -41,9 +41,11 @@ class ScanDelegate(DefaultDelegate):
 
     def handleDiscovery(self, dev, isNewDev, isNewData):
         if isNewDev:
-            print ("Discovered device", dev.addr)
+#            print ("Discovered device", dev.addr)
+            return
         elif isNewData:
-            print ("Received new data from", dev.addr)
+#            print ("Received new data from", dev.addr)
+            return
 
     def doQueryInsert (conn, addr, loc, temp, accero):
 
@@ -71,6 +73,7 @@ try:
                 for saddr in SENSOR_ADDRESS:
                     entry += 1
                 if (dev.addr == saddr):
+                    print (" ")
                     print ("Device %s (%s), RSSI=%d dB" % (dev.addr, dev.addrType, dev.rssi))
                     CurrentDevAddr = saddr
                     CurrentDevLoc = SENSOR_LOCATION[entry-1]
@@ -113,7 +116,7 @@ try:
                     while (idx < len(ManuDataHex)):
                        # print ("Idx: " + str(idx))
                        # print ("Data: " + hex(ManuDataHex[idx]))
-                        
+#                        LightData = 0
                         if (ManuDataHex[idx] == 0x41):
                             #Accerometer data
                             idx += 1
@@ -151,10 +154,12 @@ try:
                     print ("Accelero Data: " + hex(AcceleroType) + " " + hex(AcceleroData))
                     print ("Light Data: " + str(round(LightData)))
                     print ("Temp Data: " + str(round(TempData,1)))
-                    writetoMQTT(data)
+#                    writetoMQTT(data)
 #                    doQueryInsert(myConnection, CurrentDevAddr, CurrentDevLoc, TempData, AcceleroData)
-                    ReadLoop = False
+#                    ReadLoop = False
+                    time.sleep(60)
             else:
+               continue
                print ("btLE not found")
                RetryCount +=1
                if RetryCount > 3: ReadLoop = False
